@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>滑块原理</title>
+    <style>
+    .swiper {
+        position: relative;
+        width: 300px;
+
+        /* 下面是为了让大家看的更清楚，加的修饰 */
+        padding: 30px 0;
+        margin: 0 auto;
+        background: #FFB973;
+    }
+    .swiper .swiper-container {
+        position: relative;
+        /* 为啥要设置-300px呢，因为我想让他默认在第二个滑块的位置，一会会给大家演示 */
+        left: -300px;
+        /* 让容器尽可能的宽，这样才能容纳更多的滑块 */
+        width: 10000%;
+        /* 让内部滑块可以排成一行 */
+        display: flex;
+        
+
+        /* 下面是为了让大家看的更清楚，加的修饰 */
+        background: red;
+        padding: 15px 0;
+
+    }
+    .swiper .swiper-container.move {
+        transition: left 0.2s ease-in-out;
+    } 
+    .swiper .swiper-container .swiper-item {
+        /* 宽度设置1%会按照外层视图的宽度来铺满 */
+        width: 1%;
+        height: 300px;
+        background: #eee;
+
+        /* 下面是为了让大家看的更清楚，加的修饰 */
+        text-align: center;
+        font-size: 40px;
+        color: #fff;
+    }
+    </style>
+</head>
+<body>
+<!-- 视图层 -->
+<div class="swiper">
+    <!-- 容器 -->
+    <div class="swiper-container">
+        <!-- 滑块 -->
+        <div class="swiper-item" style="background: #000">1</div>
+        <div class="swiper-item" style="background: #4269eb">2</div>
+        <div class="swiper-item" style="background: #247902">3</div>
+    </div>
+</div>
+<script>
+// 首先获取视图层元素
+const swiperEl = document.querySelector('.swiper');
+// 在视图层里边查找容器元素
+const containerEl = swiperEl.querySelector('.swiper-container');
+// 获取到所有的滑块元素
+const itemEls = containerEl.querySelectorAll('.swiper-item');
+
+let state = 0;          // 鼠标默认状态
+let startEvent = null;  // 用来记录鼠标按下时候的位置（最初位置）
+let oldEvent = null;    // 用来记录鼠标上次的位置
+let index = 0;          // 记录当前滑块的顺序（从0开始）
+
+// 获取到滑块的宽度
+const itemWidth = itemEls[0].offsetWidth;
+// 存储容器的left，这里我们根据index也来计算初始容器的left值
+let left = 0 - itemWidth * index;
+// 设置容器的默认位置
+containerEl.style.left = left + 'px';
+
+containerEl.addEventListener('mousedown', (event) => {
+    state = 1;  // 设置为1表示按下了鼠标
+    startEvent = oldEvent = event;   // 当鼠标按下时候记录初始位置
+    console.log('鼠标按下了');
+});
+
+// 自动播放状态
+let autoplay = true;
+
+setInterval(() => {
+    if (!autoplay) return;  
+	// 默认向左滑动
+    index ++;
+    // 如果滑动到最后一个滑块，则回到第一个滑块
+    if (index > itemEls.length - 1) {
+        index = 0;
+    }
+
+    // 追加一个move样式
+    containerEl.className += ' move';
+    // 当过度动画结束后，一定要把这个类给移除掉
+    containerEl.addEventListener('transitionend', () => {
+        // 正则替换 \s+ 表示一个或多个空白字符
+        containerEl.className = containerEl.className.replace(/\s+move/, '');
+    })
+
+    left = 0 - itemWidth * index;
+    containerEl.style.left = left + 'px';
+}, 2000);
+
+containerEl.addEventListener('mouseover', () => {
+    // 鼠标移动到容器上，停止播放
+    autoplay = false;
+});
+containerEl.addEventListener('mouseout', () => {
+    // 鼠标从容器上移开，恢复播放
+    autoplay = true;
+});
+
+containerEl.addEventListener('mousemove', (event) => {
+    if (state != 1) return; // 只有当state == 1时候才允许执行该事件
+
+    // 用当前鼠标的位置来和上次鼠标的位置作比较
+    // 如果当前鼠标的pageX小于上次鼠标的pageX，那就表示鼠标在向左拖动，就需要把容器left值减去鼠标移动的距离
+    if (event.pageX < oldEvent.pageX) {
+        left -= oldEvent.pageX - event.pageX;
+    }
+    else {
+        left += event.pageX - oldEvent.pageX;
+    }
+    // 完事之后记得把当前鼠标的位置赋值给oldEvent
+    oldEvent = event;
+    // 最后再把left赋值给容器
+    containerEl.style.left = left + 'px';
+    console.log('鼠标移动了');
+});
+
+containerEl.addEventListener('mouseup', (event) => {
+    state = 0;  // 恢复默认状态
+    
+    // 鼠标抬起时候，和按下的坐标作比对，用来判断是向左滑动还是向右滑动
+    // 向左滑动那么就是要显示下一个滑块，所以index要加1
+    if (event.pageX < startEvent.pageX) {
+        index ++;
+    }
+    else {
+        index --;
+    }
+
+    // 防止滑块越界
+    // 如果当前滑块是第一个，向右滑动后，回到第一个滑块
+    // 如果是最后一个，想左滑动后，回到最后一个滑块
+    if (index < 0) {
+        index = 0;
+    }
+    else if (index > itemEls.length - 1) {
+        index = itemEls.length - 1;
+    }
+
+    // 追加一个move样式
+    containerEl.className += ' move';
+    // 当过度动画结束后，一定要把这个类给移除掉
+    containerEl.addEventListener('transitionend', () => {
+        // 正则替换 \s+ 表示一个或多个空白字符
+        containerEl.className = containerEl.className.replace(/\s+move/, '');
+    })
+
+    left = 0 - itemWidth * index;
+    containerEl.style.left = left + 'px';
+    console.log('鼠标抬起了');
+});
+</script>
+</body>
+</html>

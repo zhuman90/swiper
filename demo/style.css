@@ -1,0 +1,54 @@
+html {
+    font-size: 14px;
+    font-weight: 500;
+}
+body {
+    background: #f7f7f7;
+}
+* {
+    margin: 0;
+    padding: 0;
+}
+h3 {
+    text-align: center;
+    padding: 20px 0;
+}
+#swiper .swiper-item img{
+    width: 100%;
+}
+
+/* 分类菜单 */
+.swiper-menus .swiper-item {
+    display: flex;
+    flex-wrap: wrap;
+}
+.swiper-menus .swiper-item .menu {
+    width: 15%;
+    text-align: center;
+    margin: 10px 5%;
+}
+.swiper-menus .swiper-item .menu img {
+    width: 100%;
+}
+
+
+/* tab相关 */
+.tabs {
+    display: flex;
+    justify-content: center;
+}
+.tabs .tabs-item {
+    padding: 15px 0;
+    text-align: center;
+    width: 100%;
+}
+.tabs .tabs-item.active {
+    background: #fff;
+}
+.swiper-tab .swiper-item {
+    color: #fff;
+    font-size: 30px;
+    text-align: center;
+    padding: 100px 0;
+}
+
